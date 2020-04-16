@@ -1,7 +1,5 @@
 # Modeling NYC Apartment Rental Pricing on Craigslist
 
-![map of nyc listing data](images/cl_apartments_map.png)
-
 <p align="center">
     <img src="images/cl_apartments_map.png" width="500" height="auto"/>
 </p>
