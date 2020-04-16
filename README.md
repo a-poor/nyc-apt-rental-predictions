@@ -2,7 +2,7 @@
 
 ![map of nyc listing data](images/cl_apartments_map.png)
 
-<img src="images/cl_apartments_map.png" width="500" height="auto"/>
+<img src="images/cl_apartments_map.png" align="center" width="500" height="auto"/>
 
 by Austin Poor
 
