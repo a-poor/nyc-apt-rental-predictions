@@ -1,6 +1,6 @@
 # Modeling NYC Apartment Rental Pricing on Craigslist
 
-![map of nyc listing data](images/cl_apartments_map.png)
+![map of nyc listing data](images/cl_apartments_map.png | width=500)
 
 by Austin Poor
 
