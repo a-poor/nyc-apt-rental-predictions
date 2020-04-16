@@ -2,8 +2,10 @@
 
 ![map of nyc listing data](images/cl_apartments_map.png)
 
-<img src="images/cl_apartments_map.png" align="center" width="500" height="auto"/>
-
+<p align="center">
+    <img src="images/cl_apartments_map.png" width="500" height="auto"/>
+</p>
+    
 by Austin Poor
 
 I did this analysis as my second project for the [Metis Data Science Bootcamp](https://www.thisismetis.com/data-science-bootcamps). For this project we chose our own topics but were required to use gather our data by web-scraping and use a linear regression model.
