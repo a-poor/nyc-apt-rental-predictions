@@ -1,3 +1,13 @@
+"""
+scrape.py
+by Austin Poor
+
+Script to scrape craigslist apartment listing data
+using requests and BeautifulSoup, then stores the
+results in a sqlite database.
+
+"""
+
 
 import re
 import sqlite3
@@ -8,13 +18,22 @@ import requests
 from bs4 import BeautifulSoup
 
 
+
+
+# Lambda functions for creating urls to scrape
+# based on several craigslist search filters...
+
+# Simple function for searching for apartments w/o filters 
 page_url = lambda n=-1: f"https://newyork.craigslist.org/search/apa?s={n}"
+
+# More complicated functions for creating urls / searching for apartments
+# that include multiple filters for price & sqft
 make_url = lambda i=-1, min=0, max=1000: f"https://newyork.craigslist.org/search/apa?s={i}&bundleDuplicates=1&max_price={max}&min_price={min}"
 make_url2 = lambda i, minprice, maxprice, minsqft, maxsqft: (
     f"https://newyork.craigslist.org/search/apa?s={i}&availabilityMode=0&bundleDuplicates=1&maxSqft={maxsqft}&max_price={maxprice}&minSqft={minsqft}&min_price={minprice}"
     )
 
-
+# Create urls to search...
 price_start_ends = tuple((i*500, (i+1)*500) for i in range(12))
 sqft_start_ends = tuple((i*200, (i+1)*200) for i in range(8))
 
@@ -33,8 +52,9 @@ for start_s, end_s in sqft_start_ends:
             )
 
 
-
-DB = sqlite3.connect("craigslist_apts.db")
+# Connect to the database to store the
+# intermediate data
+DB = sqlite3.connect("data/craigslist_apts.db")
 C = DB.cursor()
 C.execute("""
 CREATE TABLE IF NOT EXISTS "cl_links" (
@@ -61,10 +81,35 @@ CREATE TABLE IF NOT EXISTS "cl_apts_tmp" (
 del C
 
 def get_page_urls(n=5,sleep_time=0.1,links=None):
+    """
+    Finds URLs for craigslist apartment listings,
+    by scraping the craigslist search results page.
+    
+    Adds results to "craigslist_apts.db"
+    
+    Inputs
+    ––––––
+        n:int 
+            Number of pages to search. Uses "page_url()" 
+            function to create urls (default=5)
+        sleep_time:float 
+            Amount of time, in seconds,
+            to sleep between page requests (default=0.1)
+        links:list 
+            Rather than creating urls with "n" parameter,
+            you can optionally supply a list of URLs
+            to search (default=None)
+    Outputs
+    –––––––
+        None; Side-effecting function which adds results 
+        to the sqlite database, "craigslist_apts.db"
+    """
+    # Keep track of success / failures
     links_added = {
             'success':0,
             'error':0
         }
+    
     if links is None:
         link_iter = [page_url(i*120) for i in range(n)]
     else:
@@ -96,9 +141,42 @@ def get_page_urls(n=5,sleep_time=0.1,links=None):
     print("Link scraping completed.")
     print("# of successes:",links_added['success'])
     print("# of errors:   ",links_added['error'])
-    pass
+    
 
 def parse_apt_page(url):
+    """
+    Parses a single craigslist apartment listing page.
+    
+    Uses requests and BeautifulSoup to scrape the
+    following data and store it in a sqlite databse:
+        post_id       craigslist post id
+        link          url for the post
+        price         apartment price
+        description   listing description
+        n_images      number of images on the posting
+        post_time     timestamp listing was posted
+        title         listing title
+        placename     craigslist's listed postname
+        latlon        apartment latitude/longitude value
+        location      geographic location of apartment
+        housing       # of beds / sqft
+        attrs         Other listed attributes
+        
+    Also uses a lot of try/except blocks for error
+    handling, since there's a lot of variance in
+    the data available in apartment listings.
+    
+    Inputs
+    ––––––
+        url:str
+            Craiglist apartment listing URL to scrape
+    Outputs
+    –––––––
+        Bool:
+            Returns "True" if it was able to successfuly
+            add the listing to the database, otherwise
+            returns "False".
+    """
     ### Get the page ###
     resp = requests.get(url)
     soup = BeautifulSoup(resp.content,'lxml')
@@ -223,6 +301,37 @@ def parse_apt_page(url):
 
 
 def run(n_pages=10,sleep_time=0.5,scrape_links=True,scrape_apts=True,links=None):
+    """
+    Main function for scraping apartment listing data
+    from craigslist.
+    
+    Runs in two (optional) phases.
+    1. Scrapes new apartment listing urls to check
+    2. Scrapes listing data from urls found in step 1
+    
+    Inputs
+    ––––––
+        n_pages:int 
+            Number of pages to search. Uses "page_url()" 
+            function to create urls (default=10)
+        sleep_time:float 
+            Amount of time, in seconds,
+            to sleep between page requests (default=0.5)
+        scrape_links:bool 
+            (step 1) should the function scrape new listing urls?
+            (default=True)
+        scrape_apts:bool 
+            (step 2) should the function scrape listing data from
+            urls in the database (default=True)
+        links:list 
+            Rather than creating urls with "n_pages" parameter,
+            you can optionally supply a list of URLs
+            to search (default=None)
+    Outputs
+    –––––––
+        None; Side-effecting function that writes to
+        sqlite database "craigslist_apts.db"
+    """
     if scrape_links:
         print("Adding urls...")
         try:
@@ -245,7 +354,6 @@ def run(n_pages=10,sleep_time=0.5,scrape_links=True,scrape_apts=True,links=None)
         print("Done scraping apartment pages.")
     else:
         print("Skipping apt scraping.")
-    pass
 
 
 if __name__ == '__main__':

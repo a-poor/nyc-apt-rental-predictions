@@ -1,30 +1,55 @@
+"""
+clean.py
+by Austin Poor
+
+Script to clean craigslist data scraped by "scrape.py".
+Data is read from and then stored back to sqlite 
+database "craigslist_apts.db".
+
+"""
 
 import re
 import sqlite3
 import time
 
 
-DB = sqlite3.connect("craigslist_apts.db")
-C = DB.cursor()
 
-C.execute("""
-SELECT
-    post_id,
-    link,
-    price,
-    description,
-    n_images,
-    post_time,
-    title,
-    placename,
-    latlon,
-    location,
-    housing,
-    attrs
-FROM cl_apts_tmp
-WHERE link NOT IN (SELECT link FROM cl_apts);""")
+DB = sqlite3.connect("data/craigslist_apts.db")
+
+
 
 def add_to_db(post):
+    """
+    Function for adding cleaned apartment listing
+    data to the database.
+    
+    Inputs
+    ––––––
+        post: tuple
+            Stores the following cleaned data to 
+            the sqlite database:
+                post_id,
+                link,
+                price,
+                description,
+                n_images,
+                post_time,
+                title,
+                placename,
+                lat,
+                lon,
+                location,
+                housing,
+                attrs,
+                sqft,
+                beds,
+                dogs_ok,
+                cats_ok
+    Outputs
+    -––––––
+        None; Side-effecting function that adds
+        data to the database
+    """
     c = DB.cursor()
     try:
         c.execute("""
@@ -60,7 +85,29 @@ def add_to_db(post):
         raise
     else:
         DB.commit()
-    pass
+        
+
+        
+C = DB.cursor()
+
+C.execute("""
+SELECT
+    post_id,
+    link,
+    price,
+    description,
+    n_images,
+    post_time,
+    title,
+    placename,
+    latlon,
+    location,
+    housing,
+    attrs
+FROM cl_apts_tmp
+WHERE link NOT IN (
+    SELECT link FROM cl_apts
+);""")
 
 
 for post in C.fetchall():
@@ -174,8 +221,6 @@ for post in C.fetchall():
         except:
             sqft = None
     
-
-
     
 
     ##### Add the new values #####

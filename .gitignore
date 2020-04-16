@@ -1,3 +1,6 @@
 .DS_Store
 *.db
 *.pkl
+.ipynb_checkpoints
+data/*.db
+data/*.pkl
